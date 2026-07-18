@@ -77,19 +77,19 @@ export default function Contacts() {
           fontFamily: "'Oswald', sans-serif", fontWeight: 700, textTransform: "uppercase",
           fontSize: "clamp(2.2rem, 8vw, 4rem)", lineHeight: 1.02, margin: "0 0 40px 0", letterSpacing: "0.01em"
         }}>
-          <span style={{
-            display: "block",
+            <span style={{
+            display: "inline-block", marginRight: "10px",
             backgroundImage: "linear-gradient(180deg, #ffffff 0%, #a5b1c0 100%)",
             WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent"
           }}>
-            Наши
+            {t("contacts.eyebrow_title_1")}
           </span>
           <span style={{
-            display: "block",
+            display: "inline-block",
             backgroundImage: "linear-gradient(180deg, #7fb8f5 0%, #2c6ab8 100%)",
             WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent"
           }}>
-            Контакты
+            {t("contacts.eyebrow_title_2")}
           </span>
         </h2>
 
@@ -168,6 +168,26 @@ export default function Contacts() {
           </form>
         )}
 
+        <h2 style={{
+          fontFamily: "'Oswald', sans-serif", fontWeight: 700, textTransform: "uppercase", marginTop: 80,
+          fontSize: "clamp(2.2rem, 8vw, 4rem)", lineHeight: 1.02, margin: "80px 0 24px 0", letterSpacing: "0.01em"
+        }}>
+          <span style={{
+            display: "inline-block", marginRight: "10px",
+            backgroundImage: "linear-gradient(180deg, #ffffff 0%, #a5b1c0 100%)",
+            WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent"
+          }}>
+            {t("contacts.eyebrow_title_3")}
+          </span>
+          <span style={{
+            display: "inline-block",
+            backgroundImage: "linear-gradient(180deg, #7fb8f5 0%, #2c6ab8 100%)",
+            WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent"
+          }}>
+            {t("contacts.eyebrow_title_4")}
+          </span>
+        </h2>
+
         <div style={{ display: "flex", gap: 14, marginTop: 40, flexWrap: "wrap" }}>
           {socials.map((s, i) => (
             <a key={i} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} style={{
@@ -193,7 +213,7 @@ export default function Contacts() {
 
         <div style={{
           display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 32,
-          marginTop: 80, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 40
+          marginTop: 60, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 40
         }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
             <Phone size={20} color="#4f8fe0" style={{ marginTop: 4 }} />

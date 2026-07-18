@@ -1,43 +1,68 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { API_BASE_URL } from "../config";
+import { supabase } from "../supabaseClient"; // <-- Импортируем ваш клиент Supabase
 
 const ProductsContext = createContext(null);
 
 export function ProductsProvider({ children }) {
   const [products, setProducts] = useState([]);
 
+  // 1. Получение всех товаров (Read)
   async function refresh() {
-    const res = await fetch(`${API_BASE_URL}/products/`);
-    const data = await res.json();
-    setProducts(data);
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("id", { ascending: true }); // Сортировка (по желанию)
+
+    if (error) {
+      console.error("Ошибка при получении товаров:", error.message);
+    } else {
+      setProducts(data || []);
+    }
   }
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    refresh();
+  }, []);
 
-  function authHeaders() {
-    const token = localStorage.getItem("uztrans_token");
-    return { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-  }
-
+  // 2. Добавление товара (Create)
   async function addProduct(p) {
-    await fetch(`${API_BASE_URL}/products/`, {
-      method: "POST", headers: authHeaders(), body: JSON.stringify(p),
-    });
-    await refresh();
+    const { error } = await supabase
+      .from("products")
+      .insert([p]);
+
+    if (error) {
+      console.error("Ошибка при добавлении товара:", error.message);
+    } else {
+      await refresh();
+    }
   }
 
+  // 3. Обновление товара (Update)
   async function updateProduct(id, p) {
-    await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: "PUT", headers: authHeaders(), body: JSON.stringify(p),
-    });
-    await refresh();
+    const { error } = await supabase
+      .from("products")
+      .update(p)
+      .eq("id", id); // Фильтр по ID строки
+
+    if (error) {
+      console.error("Ошибка при обновлении товара:", error.message);
+    } else {
+      await refresh();
+    }
   }
 
+  // 4. Удаление товара (Delete)
   async function deleteProduct(id) {
-    await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: "DELETE", headers: authHeaders(),
-    });
-    await refresh();
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", id); // Фильтр по ID строки
+
+    if (error) {
+      console.error("Ошибка при удалении товара:", error.message);
+    } else {
+      await refresh();
+    }
   }
 
   return (

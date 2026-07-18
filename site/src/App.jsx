@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { LanguageProvider } from "./context/LanguageContext";
 import { ProductsProvider } from "./context/ProductsContext";
 import Intro from "./components/Intro";
-import HamburgerMenu from "./components/HamburgerMenu";
+import Navigation from "./components/Navigation";
+import { supabase } from "./supabaseClient";
 import FloatingContacts from "./components/FloatingContacts";
 import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
@@ -18,7 +19,7 @@ function Site() {
   return (
     <>
       {intro && <Intro onDone={() => setIntro(false)} />}
-      <HamburgerMenu page={page} setPage={setPage} />
+      <Navigation page={page} setPage={setPage} />
       <FloatingContacts page={page} setPage={setPage} />
       {page === "home" && <Home setPage={setPage} />}
       {page === "catalog" && <Catalog />}
@@ -55,6 +56,18 @@ export default function App() {
     if (typeof window !== "undefined") {
       setIsAdmin(window.location.pathname.startsWith("/admin"));
     }
+
+    const checkSupabase = async () => {
+      // Замените 'products' на имя вашей таблицы, когда создадите её в Supabase
+      const { data, error } = await supabase.from("products").select("*").limit(1);
+      if (error) {
+        console.error("Supabase connection error:", error.message);
+      } else {
+        console.log("Supabase connected successfully! Test data:", data);
+      }
+    };
+    
+    checkSupabase();
   }, []);
 
   return (
