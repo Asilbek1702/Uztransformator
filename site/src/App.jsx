@@ -13,6 +13,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
 
 function Site() {
+  const [intro, setIntro] = useState(true);
   const [page, setPage] = useState(() => {
     return localStorage.getItem("current_page") || "home";
   });
