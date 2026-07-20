@@ -63,7 +63,7 @@ export default function Catalog() {
                 position: "relative",
                 alignItems: "center",
                 background: "linear-gradient(145deg, rgba(20, 24, 30, 0.8) 0%, rgba(10, 12, 15, 0.85) 100%)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.18)",
                 backdropFilter: "blur(16px)",
                 boxShadow: `
                   0 30px 60px rgba(0, 0, 0, 0.6),
