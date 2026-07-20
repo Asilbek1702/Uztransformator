@@ -62,14 +62,13 @@ export default function Catalog() {
                 borderRadius: "24px",
                 position: "relative",
                 alignItems: "center",
-                background: "rgba(15, 18, 24, 0.28)",
-                backdropFilter: "blur(24px)",
-                WebkitBackdropFilter: "blur(24px)",
-                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255, 255, 255, 0.03)",
+                backdropFilter: "blur(20px)", 
+                WebkitBackdropFilter: "blur(20px)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
                 boxShadow: `
-                  0 30px 60px rgba(0, 0, 0, 0.6),
-                  inset 0 1px 1px rgba(255, 255, 255, 0.15),
-                  inset 0 -1px 20px rgba(0, 0, 0, 0.4)
+                  0 30px 60px rgba(0, 0, 0, 0.5),
+                  inset 0 1px 1px rgba(255, 255, 255, 0.1)
                 `,
               }}>
                 <div style={{
