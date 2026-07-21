@@ -5,12 +5,14 @@ import Intro from "./components/Intro";
 import Navigation from "./components/Navigation";
 import { supabase } from "./supabaseClient";
 import FloatingContacts from "./components/FloatingContacts";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
 import About from "./pages/About";
 import Contacts from "./pages/Contacts";
 import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
+import NotFound from "./pages/NotFound";
 
 function Site() {
   const [intro, setIntro] = useState(true);
@@ -57,26 +59,38 @@ function Admin() {
   );
 }
 
+// Реальных клиентских роутов в приложении нет (переключение страниц — через state),
+// поэтому распознаём только "/" и "/admin". Всё остальное — 404.
+function resolveRoute(pathname) {
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "admin";
+  if (pathname === "/" || pathname === "") return "site";
+  return "notfound";
+}
+
 export default function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [route, setRoute] = useState("site");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsAdmin(window.location.pathname.startsWith("/admin"));
+      setRoute(resolveRoute(window.location.pathname));
     }
   }, []);
 
   return (
-    <LanguageProvider>
-      <ProductsProvider>
-        <div style={{ fontFamily: "system-ui, sans-serif" }}>
-          <style>{`
-            html, body { margin: 0; padding: 0; overflow-x: hidden; }
-            #root { overflow-x: hidden; }
-          `}</style>
-          {isAdmin ? <Admin /> : <Site />}
-        </div>
-      </ProductsProvider>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <ProductsProvider>
+          <div style={{ fontFamily: "system-ui, sans-serif" }}>
+            <style>{`
+              html, body { margin: 0; padding: 0; overflow-x: hidden; }
+              #root { overflow-x: hidden; }
+            `}</style>
+            {route === "admin" && <Admin />}
+            {route === "site" && <Site />}
+            {route === "notfound" && <NotFound />}
+          </div>
+        </ProductsProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
