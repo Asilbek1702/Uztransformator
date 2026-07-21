@@ -172,7 +172,9 @@ export default function Catalog() {
                           {f.label[lang]}
                         </div>
                         <div style={{ fontWeight: 700, fontSize: "1rem", color: "#eeece4" }}>
-                          {f.type === "select" ? optionLabel(f, p.specs?.[f.key], lang) : p.specs?.[f.key]}
+                          {f.type === "select"
+                            ? optionLabel(f, p.specs?.[f.key], lang)
+                            : (p.specs?.[f.key] && typeof p.specs[f.key] === "object" ? p.specs[f.key][lang] : p.specs?.[f.key])}
                         </div>
                       </div>
                     ))}
