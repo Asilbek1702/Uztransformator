@@ -6,6 +6,8 @@ import { useLanguage } from "../context/LanguageContext";
 import { useProducts } from "../context/ProductsContext";
 import { CATEGORIES, getCategory, optionLabel } from "../data/categories";
 
+const QUOTE_EMAIL = "Energomax.tashkent@gmail.com";
+
 export default function Catalog() {
   const { t, lang } = useLanguage();
   const { products } = useProducts();
@@ -13,13 +15,77 @@ export default function Catalog() {
   const [selected, setSelected] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [hoverBtn, setHoverBtn] = useState(null);
 
   const shown = filter === "Все" ? products : products.filter((p) => p.category === filter);
 
+  async function submitQuote(e) {
+    e.preventDefault();
+    setSending(true);
+    const form = e.target;
+    const payload = {
+      name: form.name.value,
+      phone: form.phone.value,
+      email: form.email.value,
+      category: form.category.value,
+      description: form.description.value,
+      product: selected ? selected[`name_${lang}`] : "",
+      _subject: `Заявка на КП: ${selected ? selected[`name_${lang}`] : ""}`,
+    };
+    try {
+      await fetch(`https://formsubmit.co/ajax/${QUOTE_EMAIL}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error("Ошибка отправки заявки:", err);
+    }
+    setSending(false);
+    setSent(true);
+  }
+
   return (
     <div style={{ background: "#0d0f11", color: "#eeece4", padding: "90px 24px 60px", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
       <StarField />
+
+      <style>{`
+        @media (max-width: 640px) {
+          .catalog-card {
+            flex-direction: column !important;
+            padding: 24px 18px !important;
+            gap: 18px !important;
+          }
+          .catalog-img-wrap {
+            order: -1 !important;
+            width: 100% !important;
+          }
+          .catalog-img-wrap img {
+            height: 190px !important;
+          }
+          .catalog-info {
+            align-items: center !important;
+            text-align: center !important;
+            width: 100% !important;
+          }
+          .catalog-info h3 {
+            text-align: center !important;
+          }
+          .catalog-specs {
+            justify-content: center !important;
+            text-align: center !important;
+          }
+          .catalog-specs > div {
+            text-align: center !important;
+          }
+          .catalog-actions {
+            justify-content: center !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
+
       <div style={{ position: "relative", zIndex: 1, maxWidth: 1000, margin: "0 auto" }}>
         <p style={{ fontFamily: "monospace", fontSize: "0.78rem", letterSpacing: "0.18em", color: "#4f8fe0", marginBottom: 14 }}>
           {t("catalog.eyebrow")}
@@ -54,7 +120,7 @@ export default function Catalog() {
             const name = p[`name_${lang}`];
 
             return (
-              <div key={p.id} style={{
+              <div key={p.id} className="catalog-card" style={{
                 display: "flex",
                 flexDirection: "row",
                 gap: 50,
@@ -63,7 +129,7 @@ export default function Catalog() {
                 position: "relative",
                 alignItems: "center",
                 background: "rgba(255, 255, 255, 0.03)",
-                backdropFilter: "blur(20px)", 
+                backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
                 boxShadow: `
@@ -71,7 +137,7 @@ export default function Catalog() {
                   inset 0 1px 1px rgba(255, 255, 255, 0.1)
                 `,
               }}>
-                <div style={{
+                <div className="catalog-img-wrap" style={{
                   flex: "1 1 50%", display: "flex", alignItems: "center", justifyContent: "center",
                   position: "relative", order: reversed ? 2 : 1
                 }}>
@@ -86,7 +152,7 @@ export default function Catalog() {
                   }} />
                 </div>
 
-                <div style={{
+                <div className="catalog-info" style={{
                   flex: "1 1 50%", display: "flex", flexDirection: "column", justifyContent: "center",
                   textAlign: "left", alignItems: "flex-start", order: reversed ? 1 : 2
                 }}>
@@ -99,7 +165,7 @@ export default function Catalog() {
                     {name}
                   </h3>
 
-                  <div style={{ display: "flex", gap: 32, marginBottom: 28, textAlign: "left", flexWrap: "wrap" }}>
+                  <div className="catalog-specs" style={{ display: "flex", gap: 32, marginBottom: 28, textAlign: "left", flexWrap: "wrap" }}>
                     {cat?.fields.map((f) => (
                       <div key={f.key}>
                         <div style={{ fontSize: "0.82rem", color: "rgba(238,236,228,0.4)", marginBottom: 6, letterSpacing: "0.05em" }}>
@@ -112,7 +178,7 @@ export default function Catalog() {
                     ))}
                   </div>
 
-                  <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  <div className="catalog-actions" style={{ display: "flex", gap: 12, alignItems: "center" }}>
                     <button onClick={() => setSelected(p)} style={{
                       padding: "13px 24px",
                       background: "linear-gradient(90deg, rgba(141, 182, 230, 0.9) 0%, rgba(107, 163, 236, 0.9) 100%)",
@@ -168,18 +234,18 @@ export default function Catalog() {
             {sent ? (
               <p style={{ color: "#4f8fe0", fontSize: "0.9rem" }}>{t("quoteForm.sent")}</p>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} style={{ display: "grid", gap: 10 }}>
-                <input placeholder={t("quoteForm.name")} required style={inputStyle} />
-                <input placeholder={t("quoteForm.phone")} required style={inputStyle} />
-                <input placeholder={t("quoteForm.email")} type="email" style={inputStyle} />
-                <select defaultValue={selected.category} style={inputStyle}>
+              <form onSubmit={submitQuote} style={{ display: "grid", gap: 10 }}>
+                <input name="name" placeholder={t("quoteForm.name")} required style={inputStyle} />
+                <input name="phone" placeholder={t("quoteForm.phone")} required style={inputStyle} />
+                <input name="email" placeholder={t("quoteForm.email")} type="email" style={inputStyle} />
+                <select name="category" defaultValue={selected.category} style={inputStyle}>
                   {CATEGORIES.map((c) => (
                     <option key={c.id} value={c.id}>{c.label[lang]}</option>
                   ))}
                 </select>
-                <textarea placeholder={t("quoteForm.description")} rows={3} style={inputStyle} />
-                <button style={{ padding: 12, background: "#4f8fe0", border: "none", borderRadius: 8, color: "#0d0f11", fontWeight: 600, cursor: "pointer" }}>
-                  {t("quoteForm.submit")}
+                <textarea name="description" placeholder={t("quoteForm.description")} rows={3} style={inputStyle} />
+                <button disabled={sending} style={{ padding: 12, background: "#4f8fe0", border: "none", borderRadius: 8, color: "#0d0f11", fontWeight: 600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.6 : 1 }}>
+                  {sending ? "…" : t("quoteForm.submit")}
                 </button>
                 <button type="button" onClick={() => setSelected(null)} style={{
                   padding: 10, background: "transparent", border: "none", color: "rgba(238,236,228,0.5)", cursor: "pointer", fontSize: "0.85rem"
