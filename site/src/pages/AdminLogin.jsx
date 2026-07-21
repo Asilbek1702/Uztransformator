@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
-import { API_BASE_URL } from "../config";
+import { supabase } from "../supabaseClient";
 
 export default function AdminLogin({ onSuccess }) {
   const { t } = useLanguage();
@@ -12,16 +12,17 @@ export default function AdminLogin({ onSuccess }) {
     e.preventDefault();
     setError(false);
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: user, password: pass }),
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: user,
+        password: pass,
       });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      localStorage.setItem("uztrans_token", data.access_token);
+      if (authError || !data.session) {
+        throw authError;
+      }
+      localStorage.setItem("uztrans_token", data.session.access_token);
       onSuccess();
     } catch {
+      console.error("Login error:", err);
       setError(true);
     }
   }
