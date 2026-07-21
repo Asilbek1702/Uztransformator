@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 
 class Token(BaseModel):
@@ -19,7 +19,7 @@ class ProductBase(BaseModel):
     name_en: str
     image: Optional[str] = ""
     pdf: Optional[str] = ""
-    specs: Dict[str, str] = {}
+    specs: Dict[str, Any] = {}
 
 
 class ProductCreate(ProductBase):
