@@ -46,6 +46,7 @@ export const translations = {
     },
     admin: {
       loginTitle: "Вход в панель управления",
+      autoTranslateHint: "Заполни поля на одном языке, нажми «Перевести» — остальные заполнятся сами",
       sourceLang: "Язык ввода",
       autoTranslate: "Перевести",
       username: "Логин",
@@ -176,6 +177,7 @@ export const translations = {
     },
     admin: {
       loginTitle: "Boshqaruv paneliga kirish",
+      autoTranslateHint: "Bitta tilda to'ldiring, «Tarjima qilish» tugmasini bosing — qolganlari o'zi to'ladi",
       username: "Login",
       password: "Parol",
       sourceLang: "Kiritish tili",
@@ -277,6 +279,7 @@ export const translations = {
     },
     admin: {
       loginTitle: "Admin panel login",
+      autoTranslateHint: "Fill in one language, press «Translate» — the rest fill automatically",
       username: "Username",
       password: "Password",
       sourceLang: "Input language",
