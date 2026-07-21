@@ -18,6 +18,7 @@ export const translations = {
       class: "Класс",
       noProducts: "В этой категории пока нет товаров",
     },
+    notFound: { text: "Такой страницы не существует", backHome: "На главную" },
     quoteForm: {
       title: "Заявка на КП",
       name: "Имя",
@@ -132,6 +133,7 @@ export const translations = {
       cancel: "Bekor qilish",
       sent: "So'rov yuborildi",
     },
+    notFound: { text: "Bunday sahifa mavjud emas", backHome: "Bosh sahifaga" },
     about: {
       eyebrow: "KOMPANIYA HAQIDA · 2011 YILDAN",
       heading: "Har bir transformator zavoddan o'tadi — ombordan emas",
@@ -235,6 +237,7 @@ export const translations = {
       cancel: "Cancel",
       sent: "Request sent",
     },
+    notFound: { text: "This page doesn't exist", backHome: "Back home" },
     about: {
       eyebrow: "ABOUT US · SINCE 2011",
       heading: "Every transformer passes through the factory — not a warehouse",
