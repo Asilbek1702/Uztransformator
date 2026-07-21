@@ -13,6 +13,7 @@ function emptySpecs(category) {
 function emptyForm() {
   return {
     category: CATEGORIES[0].id,
+    sourceLang: "ru",
     name: { ru: "", uz: "", en: "" },
     image: "",
     pdf: "",
@@ -29,12 +30,22 @@ function fileToDataUrl(file) {
   });
 }
 
+// Бесплатный перевод через Google (без ключа, без бэкенда)
+async function translateText(text, sl, tl) {
+  if (!text.trim()) return "";
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data[0].map((chunk) => chunk[0]).join("");
+}
+
 export default function AdminPanel({ onLogout }) {
   const { t, lang } = useLanguage();
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [showForm, setShowForm] = useState(false);
+  const [translating, setTranslating] = useState(false);
 
   function startAdd() {
     setForm(emptyForm());
@@ -45,6 +56,7 @@ export default function AdminPanel({ onLogout }) {
   function startEdit(p) {
     setForm({
       category: p.category,
+      sourceLang: "ru",
       name: { ru: p.name_ru, uz: p.name_uz, en: p.name_en },
       image: p.image,
       pdf: p.pdf,
@@ -52,6 +64,25 @@ export default function AdminPanel({ onLogout }) {
     });
     setEditingId(p.id);
     setShowForm(true);
+  }
+
+  async function autoTranslate() {
+    const src = form.sourceLang;
+    const text = form.name[src];
+    if (!text.trim()) return;
+    setTranslating(true);
+    const targets = ["ru", "uz", "en"].filter((l) => l !== src);
+    try {
+      const results = await Promise.all(targets.map((tl) => translateText(text, src, tl)));
+      setForm((f) => {
+        const next = { ...f.name, [src]: text };
+        targets.forEach((tl, i) => { next[tl] = results[i]; });
+        return { ...f, name: next };
+      });
+    } catch (err) {
+      console.error("Ошибка автоперевода:", err);
+    }
+    setTranslating(false);
   }
 
   function save(e) {
@@ -113,6 +144,23 @@ export default function AdminPanel({ onLogout }) {
           }} style={inputStyle}>
             {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label[lang]}</option>)}
           </select>
+
+          <div style={{
+            display: "flex", gap: 10, alignItems: "center", background: "#0d0f11",
+            border: "1px solid rgba(79,143,224,0.3)", borderRadius: 8, padding: "10px 12px"
+          }}>
+            <span style={{ fontSize: "0.78rem", color: "rgba(238,236,228,0.6)" }}>{t("admin.sourceLang")}</span>
+            <select value={form.sourceLang} onChange={(e) => setForm((f) => ({ ...f, sourceLang: e.target.value }))} style={{ ...inputStyle, padding: 6, width: 90 }}>
+              <option value="ru">RU</option>
+              <option value="uz">UZ</option>
+              <option value="en">EN</option>
+            </select>
+            <button type="button" onClick={autoTranslate} disabled={translating} style={{
+              marginLeft: "auto", padding: "8px 14px", background: "#4f8fe0", border: "none",
+              borderRadius: 6, color: "#0d0f11", fontWeight: 600, cursor: translating ? "default" : "pointer",
+              fontSize: "0.8rem", opacity: translating ? 0.6 : 1
+            }}>{translating ? "…" : t("admin.autoTranslate")}</button>
+          </div>
 
           <label style={labelStyle}>{t("admin.nameRu")}</label>
           <input value={form.name.ru} onChange={(e) => setForm((f) => ({ ...f, name: { ...f.name, ru: e.target.value } }))} required style={inputStyle} />
