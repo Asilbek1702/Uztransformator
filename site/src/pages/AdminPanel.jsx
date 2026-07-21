@@ -4,20 +4,33 @@ import { useProducts } from "../context/ProductsContext";
 import { CATEGORIES, getCategory } from "../data/categories";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 
-function emptySpecs(category) {
-  const specs = {};
-  category.fields.forEach((f) => { specs[f.key] = f.type === "select" ? f.options[0].value : ""; });
-  return specs;
+// Для select-полей храним одно значение (варианты уже переведены в categories.js).
+// Для text-полей храним объект {ru, uz, en} — переводится вместе с названием.
+function normalizeSpecs(category, specs) {
+  const out = {};
+  category.fields.forEach((f) => {
+    const val = specs ? specs[f.key] : undefined;
+    if (f.type === "select") {
+      out[f.key] = val !== undefined && val !== null ? val : f.options[0].value;
+    } else if (val && typeof val === "object") {
+      out[f.key] = { ru: val.ru || "", uz: val.uz || "", en: val.en || "" };
+    } else {
+      // старые товары хранили одну строку — используем её как основу для всех языков
+      out[f.key] = { ru: val || "", uz: val || "", en: val || "" };
+    }
+  });
+  return out;
 }
 
 function emptyForm() {
+  const cat = CATEGORIES[0];
   return {
-    category: CATEGORIES[0].id,
+    category: cat.id,
     sourceLang: "ru",
     name: { ru: "", uz: "", en: "" },
     image: "",
     pdf: "",
-    specs: emptySpecs(CATEGORIES[0]),
+    specs: normalizeSpecs(cat, {}),
   };
 }
 
@@ -32,7 +45,7 @@ function fileToDataUrl(file) {
 
 // Бесплатный перевод через Google (без ключа, без бэкенда)
 async function translateText(text, sl, tl) {
-  if (!text.trim()) return "";
+  if (!text || !text.trim()) return "";
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
   const res = await fetch(url);
   const data = await res.json();
@@ -54,13 +67,14 @@ export default function AdminPanel({ onLogout }) {
   }
 
   function startEdit(p) {
+    const category = getCategory(p.category);
     setForm({
       category: p.category,
       sourceLang: "ru",
       name: { ru: p.name_ru, uz: p.name_uz, en: p.name_en },
       image: p.image,
       pdf: p.pdf,
-      specs: { ...p.specs },
+      specs: normalizeSpecs(category, p.specs),
     });
     setEditingId(p.id);
     setShowForm(true);
@@ -68,16 +82,33 @@ export default function AdminPanel({ onLogout }) {
 
   async function autoTranslate() {
     const src = form.sourceLang;
-    const text = form.name[src];
-    if (!text.trim()) return;
-    setTranslating(true);
     const targets = ["ru", "uz", "en"].filter((l) => l !== src);
+    const cat = getCategory(form.category);
+    const textFields = cat.fields.filter((f) => f.type === "text");
+    setTranslating(true);
     try {
-      const results = await Promise.all(targets.map((tl) => translateText(text, src, tl)));
+      const jobs = [{ kind: "name", key: null, text: form.name[src] }].concat(
+        textFields.map((f) => ({ kind: "spec", key: f.key, text: form.specs[f.key]?.[src] || "" }))
+      );
+      const results = await Promise.all(
+        jobs.map(async (job) => {
+          if (!job.text.trim()) return { ...job, translations: {} };
+          const translations = {};
+          await Promise.all(targets.map(async (tl) => { translations[tl] = await translateText(job.text, src, tl); }));
+          return { ...job, translations };
+        })
+      );
       setForm((f) => {
-        const next = { ...f.name, [src]: text };
-        targets.forEach((tl, i) => { next[tl] = results[i]; });
-        return { ...f, name: next };
+        let nextName = { ...f.name };
+        let nextSpecs = { ...f.specs };
+        results.forEach((r) => {
+          if (r.kind === "name") {
+            nextName = { ...nextName, [src]: r.text, ...r.translations };
+          } else {
+            nextSpecs = { ...nextSpecs, [r.key]: { ...(nextSpecs[r.key] || {}), [src]: r.text, ...r.translations } };
+          }
+        });
+        return { ...f, name: nextName, specs: nextSpecs };
       });
     } catch (err) {
       console.error("Ошибка автоперевода:", err);
@@ -140,7 +171,7 @@ export default function AdminPanel({ onLogout }) {
           <label style={labelStyle}>{t("admin.category")}</label>
           <select value={form.category} onChange={(e) => {
             const nc = getCategory(e.target.value);
-            setForm((f) => ({ ...f, category: e.target.value, specs: emptySpecs(nc) }));
+            setForm((f) => ({ ...f, category: e.target.value, specs: normalizeSpecs(nc, {}) }));
           }} style={inputStyle}>
             {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label[lang]}</option>)}
           </select>
@@ -161,6 +192,7 @@ export default function AdminPanel({ onLogout }) {
               fontSize: "0.8rem", opacity: translating ? 0.6 : 1
             }}>{translating ? "…" : t("admin.autoTranslate")}</button>
           </div>
+          <p style={{ fontSize: "0.74rem", color: "rgba(238,236,228,0.45)", margin: 0 }}>{t("admin.autoTranslateHint")}</p>
 
           <label style={labelStyle}>{t("admin.nameRu")}</label>
           <input value={form.name.ru} onChange={(e) => setForm((f) => ({ ...f, name: { ...f.name, ru: e.target.value } }))} required style={inputStyle} />
@@ -177,7 +209,21 @@ export default function AdminPanel({ onLogout }) {
                   {f.options.map((o) => <option key={o.value} value={o.value}>{o.label[lang]}</option>)}
                 </select>
               ) : (
-                <input value={form.specs[f.key] || ""} onChange={(e) => setForm((s) => ({ ...s, specs: { ...s.specs, [f.key]: e.target.value } }))} required style={inputStyle} />
+                <div style={{ display: "grid", gap: 6 }}>
+                  {["ru", "uz", "en"].map((l) => (
+                    <input
+                      key={l}
+                      placeholder={l.toUpperCase()}
+                      value={form.specs[f.key]?.[l] || ""}
+                      onChange={(e) => setForm((s) => ({
+                        ...s,
+                        specs: { ...s.specs, [f.key]: { ...(s.specs[f.key] || {}), [l]: e.target.value } }
+                      }))}
+                      required={l === form.sourceLang}
+                      style={inputStyle}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           ))}
