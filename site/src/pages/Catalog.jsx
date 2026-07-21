@@ -6,7 +6,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { useProducts } from "../context/ProductsContext";
 import { CATEGORIES, getCategory, optionLabel } from "../data/categories";
 
-const QUOTE_EMAIL = "Energomax.tashkent@gmail.com";
+const QUOTE_EMAIL = "4b0bb1139cf12ba51b9816eb9ff90467";
 
 export default function Catalog() {
   const { t, lang } = useLanguage();
