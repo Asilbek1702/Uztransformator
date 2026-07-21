@@ -44,5 +44,10 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 
 @app.get("/")
+def root():
+    return {"status": "ok", "service": "Uztransformator API"}
+
+
+@app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
