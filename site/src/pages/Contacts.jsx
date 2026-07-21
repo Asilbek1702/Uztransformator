@@ -12,7 +12,7 @@ const MAP_LINK = "https://maps.app.goo.gl/5vobyWXhDA4sLWyw6";
 
 const socials = [
   { icon: Send, label: "Telegram", href: "https://t.me/uztransformator" },
-  { icon: InstagramIcon, label: "Instagram", href: "https://instagram.com/uztransformator" },
+  { icon: InstagramIcon, label: "Instagram", href: "https://www.instagram.com/uztranformator_uzb/" },
   { icon: MessageCircle, label: "WhatsApp", href: "https://wa.me/998710000000" },
   { icon: FacebookIcon, label: "Facebook", href: "https://facebook.com/uztransformator" },
   { icon: LinkedinIcon, label: "LinkedIn", href: "https://linkedin.com/company/uztransformator" },
