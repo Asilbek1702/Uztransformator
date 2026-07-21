@@ -35,19 +35,22 @@ function Site() {
 }
 
 function Admin() {
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(null); // null = проверяем сессию
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setAuthed(!!localStorage.getItem("uztrans_token"));
-    }
+    supabase.auth.getSession().then(({ data }) => setAuthed(!!data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session);
+    });
+    return () => listener.subscription.unsubscribe();
   }, []);
 
+  if (authed === null) return null;
   if (!authed) return <AdminLogin onSuccess={() => setAuthed(true)} />;
   return (
     <AdminPanel
-      onLogout={() => {
-        localStorage.removeItem("uztrans_token");
+      onLogout={async () => {
+        await supabase.auth.signOut();
         setAuthed(false);
       }}
     />
@@ -61,18 +64,6 @@ export default function App() {
     if (typeof window !== "undefined") {
       setIsAdmin(window.location.pathname.startsWith("/admin"));
     }
-
-    const checkSupabase = async () => {
-      // Замените 'products' на имя вашей таблицы, когда создадите её в Supabase
-      const { data, error } = await supabase.from("products").select("*").limit(1);
-      if (error) {
-        console.error("Supabase connection error:", error.message);
-      } else {
-        console.log("Supabase connected successfully! Test data:", data);
-      }
-    };
-    
-    checkSupabase();
   }, []);
 
   return (
