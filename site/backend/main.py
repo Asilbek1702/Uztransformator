@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -15,9 +16,14 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Uztransformator API")
 
+# Список разрешённых доменов берётся из .env (через запятую).
+# Пример: ALLOWED_ORIGINS=https://uztransformator.vercel.app,http://localhost:3000
+_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
+allowed_origins = [o.strip() for o in _origins_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # restrict to your Vercel domain in production
+    allow_origins=allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
