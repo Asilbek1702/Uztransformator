@@ -12,13 +12,17 @@ from app import auth
 from app.database import get_db
 import schemas
 import crud
+from crud import DatabaseOperationError
 
 router = APIRouter(prefix="/products", tags=["products"])
 
 
 @router.get("/", response_model=List[schemas.ProductOut])
 def list_products(db: Session = Depends(get_db)):
-    return crud.get_products(db)
+    try:
+        return crud.get_products(db)
+    except DatabaseOperationError:
+        raise HTTPException(status_code=500, detail="Не удалось получить список товаров")
 
 
 @router.post("/", response_model=schemas.ProductOut)
@@ -27,7 +31,10 @@ def create_product(
     db: Session = Depends(get_db),
     admin=Depends(auth.get_current_admin),
 ):
-    return crud.create_product(db, product)
+    try:
+        return crud.create_product(db, product)
+    except DatabaseOperationError:
+        raise HTTPException(status_code=500, detail="Не удалось создать товар")
 
 
 @router.put("/{product_id}", response_model=schemas.ProductOut)
@@ -37,9 +44,12 @@ def update_product(
     db: Session = Depends(get_db),
     admin=Depends(auth.get_current_admin),
 ):
-    updated = crud.update_product(db, product_id, product)
+    try:
+        updated = crud.update_product(db, product_id, product)
+    except DatabaseOperationError:
+        raise HTTPException(status_code=500, detail="Не удалось обновить товар")
     if not updated:
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(status_code=404, detail="Товар не найден")
     return updated
 
 
@@ -49,7 +59,10 @@ def delete_product(
     db: Session = Depends(get_db),
     admin=Depends(auth.get_current_admin),
 ):
-    deleted = crud.delete_product(db, product_id)
+    try:
+        deleted = crud.delete_product(db, product_id)
+    except DatabaseOperationError:
+        raise HTTPException(status_code=500, detail="Не удалось удалить товар")
     if not deleted:
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(status_code=404, detail="Товар не найден")
     return {"ok": True}
