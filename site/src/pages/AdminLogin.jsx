@@ -21,7 +21,7 @@ export default function AdminLogin({ onSuccess }) {
       }
       localStorage.setItem("uztrans_token", data.session.access_token);
       onSuccess();
-    } catch {
+    } catch (err) { 
       console.error("Login error:", err);
       setError(true);
     }
