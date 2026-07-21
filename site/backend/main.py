@@ -1,9 +1,14 @@
+import logging
 import os
 import sys
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("uztransformator")
 
 backend_dir = Path(__file__).resolve().parent
 if str(backend_dir) not in sys.path:
@@ -30,6 +35,12 @@ app.add_middleware(
 
 app.include_router(auth_router.router)
 app.include_router(products_router.router)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Необработанная ошибка на %s", request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Внутренняя ошибка сервера"})
 
 
 @app.get("/")
