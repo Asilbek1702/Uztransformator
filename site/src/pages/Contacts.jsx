@@ -4,7 +4,7 @@ import { InstagramIcon, LinkedinIcon, FacebookIcon } from "../components/icons";
 import { useLanguage } from "../context/LanguageContext";
 import { useState } from "react";
 
-const QUOTE_EMAIL = "Energomax.tashkent@gmail.com";
+const QUOTE_EMAIL = "4b0bb1139cf12ba51b9816eb9ff90467";
 
 const PHONES = ["+998 88 599 99 99", "+998 77 666 66 66"];
 const EMAILS = ["info@uztransformator.com", "sales@uztransformator.com"];
@@ -14,11 +14,11 @@ const MAP_LINK = "https://maps.app.goo.gl/5vobyWXhDA4sLWyw6";
 
 // Если ссылки нет (href: "") — иконка покажет "скоро появится" вместо перехода
 const socials = [
-  { icon: Send, label: "Telegram", href: "" },
-  { icon: InstagramIcon, label: "Instagram", href: "https://www.instagram.com/uztranformator_uzb/" },
-  { icon: MessageCircle, label: "WhatsApp", href: "" },
-  { icon: FacebookIcon, label: "Facebook", href: "" },
-  { icon: LinkedinIcon, label: "LinkedIn", href: "" },
+  { icon: Send, label: "Telegram", href: "https://t.me/uztransformator" },
+  { icon: InstagramIcon, label: "Instagram", href: "https://instagram.com/uztransformator" },
+  { icon: MessageCircle, label: "WhatsApp", href: "https://wa.me/998710000000" },
+  { icon: FacebookIcon, label: "Facebook", href: "https://facebook.com/uztransformator" },
+  { icon: LinkedinIcon, label: "LinkedIn", href: "https://linkedin.com/company/uztransformator" },
 ];
 
 export default function Contacts() {
