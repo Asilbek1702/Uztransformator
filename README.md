@@ -1,70 +1,56 @@
-# Getting Started with Create React App
+# Uztransformator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Многоязычный (RU/UZ/EN) сайт-каталог электротехнического завода Uztransformator (Ташкент).
 
-## Available Scripts
+**Продакшен:** [uztransformator.vercel.app](https://uztransformator.vercel.app)
 
-In the project directory, you can run:
+## Стек
 
-### `npm start`
+**Frontend**
+- React (Create React App), инлайн-стили
+- Supabase (Postgres + Auth + Row Level Security) — основное хранилище данных, продакшен
+- Vercel — хостинг, деплой из GitHub
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Backend** (отдельный сервис, не используется фронтендом в проде — самостоятельный showcase-бэкенд)
+- FastAPI + SQLAlchemy + PostgreSQL/SQLite
+- Слоистая архитектура: `routers → services → crud → models`
+- JWT-аутентификация, bcrypt, rate limiting, security headers
+- Docker + Nginx + GitHub Actions CI
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Подробности — в [`docs/`](./docs).
 
-### `npm test`
+## Быстрый старт
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Frontend
+```
+cd site
+npm install
+npm start
+```
 
-### `npm run build`
+### Backend
+```
+cd site/backend
+pip install -r requirements.txt --break-system-packages
+cp env.example .env
+python create_admin.py
+uvicorn main:app --reload
+```
+Или через Docker: `docker-compose up --build`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Документация
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- [`docs/architecture.md`](./docs/architecture.md) — устройство фронтенда и бэкенда
+- [`docs/database.md`](./docs/database.md) — схема данных (Supabase + отдельная БД бэкенда)
+- [`docs/deployment.md`](./docs/deployment.md) — деплой Vercel / Docker / CI
+- [`docs/api.md`](./docs/api.md) — эндпоинты бэкенда
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Скриншоты
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+_добавить сюда скриншоты Home / Catalog / About / Contacts / Admin — `docs/screenshots/`_
+docs/screenshots/Home.png
+docs/screenshots/Catalog.png
+docs/screenshots/About_P1.png
+docs/screenshots/About_P2.png
+docs/screenshots/Contacts.png
+docs/screenshots/Admin.png

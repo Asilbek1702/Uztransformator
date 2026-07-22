@@ -4,12 +4,15 @@ import { InstagramIcon, LinkedinIcon, FacebookIcon } from "../components/icons";
 import { useLanguage } from "../context/LanguageContext";
 import { useState } from "react";
 
+const QUOTE_EMAIL = "4b0bb1139cf12ba51b9816eb9ff90467";
+
 const PHONES = ["+998 88 599 99 99", "+998 77 666 66 66"];
 const EMAILS = ["info@uztransformator.com", "sales@uztransformator.com"];
 const ADDRESS_LINE1 = "Ташкент, Бектемирский район";
 const ADDRESS_LINE2 = "сход граждан Олтинтопган";
 const MAP_LINK = "https://maps.app.goo.gl/5vobyWXhDA4sLWyw6";
 
+// Если ссылки нет (href: "") — иконка покажет "скоро появится" вместо перехода
 const socials = [
   { icon: Send, label: "Telegram", href: "https://t.me/uztransformator" },
   { icon: InstagramIcon, label: "Instagram", href: "https://instagram.com/uztransformator" },
@@ -21,8 +24,10 @@ const socials = [
 export default function Contacts() {
   const { t } = useLanguage();
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [hoverBtn, setHoverBtn] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [comingSoonMsg, setComingSoonMsg] = useState(null);
 
   const getFieldStyle = (id) => ({
     width: "100%",
@@ -42,6 +47,39 @@ export default function Contacts() {
       : "inset 0 1px 1px rgba(255, 255, 255, 0.08)",
     transition: "all 0.25s ease"
   });
+
+  async function submitContact(e) {
+    e.preventDefault();
+    setSending(true);
+    const form = e.target;
+    const payload = {
+      message: form.msg.value,
+      name: form.name.value,
+      organization: form.org.value,
+      phone: form.phone.value,
+      email: form.email.value,
+      _subject: "Новая заявка с сайта — Контакты",
+    };
+    try {
+      await fetch(`https://formsubmit.co/ajax/${QUOTE_EMAIL}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error("Ошибка отправки заявки:", err);
+    }
+    setSending(false);
+    setSent(true);
+  }
+
+  function handleSocialClick(e, s) {
+    if (!s.href) {
+      e.preventDefault();
+      setComingSoonMsg(s.label);
+      setTimeout(() => setComingSoonMsg(null), 2500);
+    }
+  }
 
   return (
     <div style={{ background: "#060709", color: "#eeece4", minHeight: "100vh", position: "relative", overflow: "hidden" }}>
@@ -96,8 +134,9 @@ export default function Contacts() {
         {sent ? (
           <p style={{ color: "#4f8fe0", fontSize: "1rem", marginTop: 40 }}>{t("contacts.sent")}</p>
         ) : (
-          <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="contacts-form" style={{ display: "grid", gap: 16 }}>
+          <form onSubmit={submitContact} className="contacts-form" style={{ display: "grid", gap: 16 }}>
             <input
+              name="msg"
               className="contacts-field"
               placeholder={t("contacts.messagePlaceholder")}
               style={getFieldStyle("msg")}
@@ -105,6 +144,7 @@ export default function Contacts() {
               onBlur={() => setFocusedField(null)}
             />
             <input
+              name="name"
               className="contacts-field"
               placeholder={t("contacts.name")}
               required
@@ -113,6 +153,7 @@ export default function Contacts() {
               onBlur={() => setFocusedField(null)}
             />
             <input
+              name="org"
               className="contacts-field"
               placeholder={t("contacts.organization")}
               style={getFieldStyle("org")}
@@ -120,6 +161,7 @@ export default function Contacts() {
               onBlur={() => setFocusedField(null)}
             />
             <input
+              name="phone"
               className="contacts-field"
               placeholder={t("contacts.phone")}
               required
@@ -128,6 +170,7 @@ export default function Contacts() {
               onBlur={() => setFocusedField(null)}
             />
             <input
+              name="email"
               className="contacts-field"
               placeholder={t("contacts.email")}
               type="email"
@@ -138,6 +181,7 @@ export default function Contacts() {
 
             <button
               type="submit"
+              disabled={sending}
               onMouseEnter={() => setHoverBtn(true)}
               onMouseLeave={() => setHoverBtn(false)}
               style={{
@@ -145,7 +189,7 @@ export default function Contacts() {
                 boxSizing: "border-box",
                 padding: "16px 24px",
                 borderRadius: "14px",
-                cursor: "pointer",
+                cursor: sending ? "default" : "pointer",
                 fontWeight: 600,
                 maxWidth: 280,
                 marginTop: 10,
@@ -160,10 +204,11 @@ export default function Contacts() {
                 color: "#ffffff",
                 boxShadow: hoverBtn ? "0 8px 24px rgba(79, 143, 224, 0.25)" : "none",
                 transform: hoverBtn ? "translateY(-2px)" : "translateY(0)",
+                opacity: sending ? 0.6 : 1,
                 transition: "all 0.25s ease"
               }}
             >
-              {t("contacts.send")} <span>»</span>
+              {sending ? "…" : <>{t("contacts.send")} <span>»</span></>}
             </button>
           </form>
         )}
@@ -188,11 +233,15 @@ export default function Contacts() {
           </span>
         </h2>
 
-        <div style={{ display: "flex", gap: 14, marginTop: 40, flexWrap: "wrap" }}>
+        <div style={{ position: "relative", display: "flex", gap: 14, marginTop: 40, flexWrap: "wrap" }}>
           {socials.map((s, i) => (
-            <a key={i} href={s.href} target="_blank" rel="noreferrer" aria-label={s.label} style={{
+            <a key={i} href={s.href || undefined} target={s.href ? "_blank" : undefined} rel={s.href ? "noreferrer" : undefined}
+              aria-label={s.label}
+              onClick={(e) => handleSocialClick(e, s)}
+              style={{
               width: 50, height: 50, display: "flex", alignItems: "center", justifyContent: "center",
-              borderRadius: 12, color: "#ffffff",
+              borderRadius: 12, color: "#ffffff", cursor: s.href ? "pointer" : "default",
+              opacity: s.href ? 1 : 0.45,
               background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)",
               border: "1px solid rgba(255,255,255,0.1)",
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
@@ -209,6 +258,17 @@ export default function Contacts() {
               <s.icon size={20} />
             </a>
           ))}
+
+          {comingSoonMsg && (
+            <div style={{
+              position: "absolute", top: -38, left: 0,
+              background: "#16191d", border: "1px solid rgba(79,143,224,0.4)",
+              color: "#7fb8f5", fontSize: "0.8rem", padding: "6px 12px",
+              borderRadius: 8, whiteSpace: "nowrap"
+            }}>
+              {t("contacts.comingSoon")}
+            </div>
+          )}
         </div>
 
         <div style={{

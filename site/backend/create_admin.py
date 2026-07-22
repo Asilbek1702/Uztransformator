@@ -1,6 +1,7 @@
 import getpass
-from app.database import SessionLocal, Base, engine
-from app import models, auth
+
+from app import auth, models
+from app.database import Base, SessionLocal, engine
 
 Base.metadata.create_all(bind=engine)
 

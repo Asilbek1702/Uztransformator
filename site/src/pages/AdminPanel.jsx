@@ -1,22 +1,38 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import { useProducts } from "../context/ProductsContext";
+import { useToast } from "../context/ToastContext";
 import { CATEGORIES, getCategory } from "../data/categories";
 import LanguageSwitcher from "../components/LanguageSwitcher";
+import Skeleton from "../components/Skeleton";
 
-function emptySpecs(category) {
-  const specs = {};
-  category.fields.forEach((f) => { specs[f.key] = f.type === "select" ? f.options[0].value : ""; });
-  return specs;
+// Для select-полей храним одно значение (варианты уже переведены в categories.js).
+// Для text-полей храним объект {ru, uz, en} — переводится вместе с названием.
+function normalizeSpecs(category, specs) {
+  const out = {};
+  category.fields.forEach((f) => {
+    const val = specs ? specs[f.key] : undefined;
+    if (f.type === "select") {
+      out[f.key] = val !== undefined && val !== null ? val : f.options[0].value;
+    } else if (val && typeof val === "object") {
+      out[f.key] = { ru: val.ru || "", uz: val.uz || "", en: val.en || "" };
+    } else {
+      // старые товары хранили одну строку — используем её как основу для всех языков
+      out[f.key] = { ru: val || "", uz: val || "", en: val || "" };
+    }
+  });
+  return out;
 }
 
 function emptyForm() {
+  const cat = CATEGORIES[0];
   return {
-    category: CATEGORIES[0].id,
+    category: cat.id,
+    sourceLang: "ru",
     name: { ru: "", uz: "", en: "" },
     image: "",
     pdf: "",
-    specs: emptySpecs(CATEGORIES[0]),
+    specs: normalizeSpecs(cat, {}),
   };
 }
 
@@ -29,12 +45,23 @@ function fileToDataUrl(file) {
   });
 }
 
+// Бесплатный перевод через Google (без ключа, без бэкенда)
+async function translateText(text, sl, tl) {
+  if (!text || !text.trim()) return "";
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data[0].map((chunk) => chunk[0]).join("");
+}
+
 export default function AdminPanel({ onLogout }) {
   const { t, lang } = useLanguage();
-  const { products, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { products, loading, addProduct, updateProduct, deleteProduct } = useProducts();
+  const toast = useToast();
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [showForm, setShowForm] = useState(false);
+  const [translating, setTranslating] = useState(false);
 
   function startAdd() {
     setForm(emptyForm());
@@ -43,18 +70,56 @@ export default function AdminPanel({ onLogout }) {
   }
 
   function startEdit(p) {
+    const category = getCategory(p.category);
     setForm({
       category: p.category,
+      sourceLang: "ru",
       name: { ru: p.name_ru, uz: p.name_uz, en: p.name_en },
       image: p.image,
       pdf: p.pdf,
-      specs: { ...p.specs },
+      specs: normalizeSpecs(category, p.specs),
     });
     setEditingId(p.id);
     setShowForm(true);
   }
 
-  function save(e) {
+  async function autoTranslate() {
+    const src = form.sourceLang;
+    const targets = ["ru", "uz", "en"].filter((l) => l !== src);
+    const cat = getCategory(form.category);
+    const textFields = cat.fields.filter((f) => f.type === "text");
+    setTranslating(true);
+    try {
+      const jobs = [{ kind: "name", key: null, text: form.name[src] }].concat(
+        textFields.map((f) => ({ kind: "spec", key: f.key, text: form.specs[f.key]?.[src] || "" }))
+      );
+      const results = await Promise.all(
+        jobs.map(async (job) => {
+          if (!job.text.trim()) return { ...job, translations: {} };
+          const translations = {};
+          await Promise.all(targets.map(async (tl) => { translations[tl] = await translateText(job.text, src, tl); }));
+          return { ...job, translations };
+        })
+      );
+      setForm((f) => {
+        let nextName = { ...f.name };
+        let nextSpecs = { ...f.specs };
+        results.forEach((r) => {
+          if (r.kind === "name") {
+            nextName = { ...nextName, [src]: r.text, ...r.translations };
+          } else {
+            nextSpecs = { ...nextSpecs, [r.key]: { ...(nextSpecs[r.key] || {}), [src]: r.text, ...r.translations } };
+          }
+        });
+        return { ...f, name: nextName, specs: nextSpecs };
+      });
+    } catch (err) {
+      console.error("Ошибка автоперевода:", err);
+    }
+    setTranslating(false);
+  }
+
+  async function save(e) {
     e.preventDefault();
     const payload = {
       category: form.category,
@@ -65,13 +130,24 @@ export default function AdminPanel({ onLogout }) {
       pdf: form.pdf,
       specs: form.specs,
     };
-    if (editingId) updateProduct(editingId, payload);
-    else addProduct(payload);
-    setShowForm(false);
+    try {
+      if (editingId) await updateProduct(editingId, payload);
+      else await addProduct(payload);
+      toast?.success(t("admin.saved"));
+      setShowForm(false);
+    } catch (err) {
+      toast?.error(t("admin.saveError"));
+    }
   }
 
-  function remove(id) {
-    if (window.confirm(t("admin.confirmDelete"))) deleteProduct(id);
+  async function remove(id) {
+    if (!window.confirm(t("admin.confirmDelete"))) return;
+    try {
+      await deleteProduct(id);
+      toast?.success(t("admin.deleted"));
+    } catch (err) {
+      toast?.error(t("admin.deleteError"));
+    }
   }
 
   const cat = getCategory(form.category);
@@ -109,10 +185,28 @@ export default function AdminPanel({ onLogout }) {
           <label style={labelStyle}>{t("admin.category")}</label>
           <select value={form.category} onChange={(e) => {
             const nc = getCategory(e.target.value);
-            setForm((f) => ({ ...f, category: e.target.value, specs: emptySpecs(nc) }));
+            setForm((f) => ({ ...f, category: e.target.value, specs: normalizeSpecs(nc, {}) }));
           }} style={inputStyle}>
             {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label[lang]}</option>)}
           </select>
+
+          <div style={{
+            display: "flex", gap: 10, alignItems: "center", background: "#0d0f11",
+            border: "1px solid rgba(79,143,224,0.3)", borderRadius: 8, padding: "10px 12px"
+          }}>
+            <span style={{ fontSize: "0.78rem", color: "rgba(238,236,228,0.6)" }}>{t("admin.sourceLang")}</span>
+            <select value={form.sourceLang} onChange={(e) => setForm((f) => ({ ...f, sourceLang: e.target.value }))} style={{ ...inputStyle, padding: 6, width: 90 }}>
+              <option value="ru">RU</option>
+              <option value="uz">UZ</option>
+              <option value="en">EN</option>
+            </select>
+            <button type="button" onClick={autoTranslate} disabled={translating} style={{
+              marginLeft: "auto", padding: "8px 14px", background: "#4f8fe0", border: "none",
+              borderRadius: 6, color: "#0d0f11", fontWeight: 600, cursor: translating ? "default" : "pointer",
+              fontSize: "0.8rem", opacity: translating ? 0.6 : 1
+            }}>{translating ? "…" : t("admin.autoTranslate")}</button>
+          </div>
+          <p style={{ fontSize: "0.74rem", color: "rgba(238,236,228,0.45)", margin: 0 }}>{t("admin.autoTranslateHint")}</p>
 
           <label style={labelStyle}>{t("admin.nameRu")}</label>
           <input value={form.name.ru} onChange={(e) => setForm((f) => ({ ...f, name: { ...f.name, ru: e.target.value } }))} required style={inputStyle} />
@@ -129,7 +223,21 @@ export default function AdminPanel({ onLogout }) {
                   {f.options.map((o) => <option key={o.value} value={o.value}>{o.label[lang]}</option>)}
                 </select>
               ) : (
-                <input value={form.specs[f.key] || ""} onChange={(e) => setForm((s) => ({ ...s, specs: { ...s.specs, [f.key]: e.target.value } }))} required style={inputStyle} />
+                <div style={{ display: "grid", gap: 6 }}>
+                  {["ru", "uz", "en"].map((l) => (
+                    <input
+                      key={l}
+                      placeholder={l.toUpperCase()}
+                      value={form.specs[f.key]?.[l] || ""}
+                      onChange={(e) => setForm((s) => ({
+                        ...s,
+                        specs: { ...s.specs, [f.key]: { ...(s.specs[f.key] || {}), [l]: e.target.value } }
+                      }))}
+                      required={l === form.sourceLang}
+                      style={inputStyle}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           ))}
@@ -166,7 +274,16 @@ export default function AdminPanel({ onLogout }) {
       )}
 
       <div style={{ display: "grid", gap: 1, maxWidth: 700 }}>
-        {products.map((p) => (
+        {loading && [0, 1, 2].map((i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 0", borderTop: "1px solid rgba(238,236,228,0.12)" }}>
+            <Skeleton width={56} height={56} radius={0} />
+            <div style={{ flex: 1, display: "grid", gap: 6 }}>
+              <Skeleton width="40%" height={16} />
+              <Skeleton width="25%" height={12} />
+            </div>
+          </div>
+        ))}
+        {!loading && products.map((p) => (
           <div key={p.id} style={{
             display: "flex", alignItems: "center", gap: 16, padding: "14px 0",
             borderTop: "1px solid rgba(238,236,228,0.12)"

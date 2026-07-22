@@ -1,5 +1,6 @@
-from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class Token(BaseModel):
@@ -19,7 +20,7 @@ class ProductBase(BaseModel):
     name_en: str
     image: Optional[str] = ""
     pdf: Optional[str] = ""
-    specs: Dict[str, str] = {}
+    specs: Dict[str, Any] = {}
 
 
 class ProductCreate(ProductBase):
@@ -29,5 +30,4 @@ class ProductCreate(ProductBase):
 class ProductOut(ProductBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
