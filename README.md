@@ -47,10 +47,18 @@ uvicorn main:app --reload
 
 ## Скриншоты
 
-_добавить сюда скриншоты Home / Catalog / About / Contacts / Admin — `docs/screenshots/`_
-docs/screenshots/Home.png
-docs/screenshots/Catalog.png
-docs/screenshots/About_P1.png
-docs/screenshots/About_P2.png
-docs/screenshots/Contacts.png
-docs/screenshots/Admin.png
+### Главная страница (Home)
+![Home](docs/screenshots/Home.png)
+
+### Каталог (Catalog)
+![Catalog](docs/screenshots/Catalog.png)
+
+### О компании (About)
+![About Part 1](docs/screenshots/About_P1.png)
+![About Part 2](docs/screenshots/About_P2.png)
+
+### Контакты (Contacts)
+![Contacts](docs/screenshots/Contacts.png)
+
+### Панель администратора (Admin)
+![Admin](docs/screenshots/Admin.png)
