@@ -44,10 +44,12 @@ def admin_user(admin_credentials):
         models.AdminUser.username == admin_credentials["username"]
     ).delete()
     db.commit()
-    db.add(models.AdminUser(
-        username=admin_credentials["username"],
-        hashed_password=auth.hash_password(admin_credentials["password"]),
-    ))
+    db.add(
+        models.AdminUser(
+            username=admin_credentials["username"],
+            hashed_password=auth.hash_password(admin_credentials["password"]),
+        )
+    )
     db.commit()
     db.close()
     return admin_credentials

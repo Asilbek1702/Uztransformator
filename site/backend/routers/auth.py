@@ -8,10 +8,10 @@ backend_dir = Path(__file__).resolve().parents[1]
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
+import schemas  # noqa: E402
 from app import auth, models  # noqa: E402
 from app.core.rate_limit import limiter  # noqa: E402
 from app.database import get_db  # noqa: E402
-import schemas  # noqa: E402
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
