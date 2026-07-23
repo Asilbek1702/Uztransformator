@@ -1,4 +1,5 @@
-import { ShieldCheck, Wrench, Truck, Clock, BadgeCheck } from "lucide-react";
+import { useState } from "react";
+import { ShieldCheck, Wrench, Truck, Clock, BadgeCheck, X } from "lucide-react";
 import StarField from "../components/StarField";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -8,6 +9,23 @@ import cardBg2 from "../assets/card-bg2.png";
 import cardBg3 from "../assets/card-bg3.png";
 import cardBg4 from "../assets/card-bg4.png";
 
+// Логотипы партнёров (вырезаны из презентации)
+import logoSqb from "../assets/partners/sqb.png";
+import logoMinenergo from "../assets/partners/minenergo.png";
+import logoToshkent from "../assets/partners/toshkent_t.png";
+import logoNgmk from "../assets/partners/ngmk.png";
+import logoAgmk from "../assets/partners/agmk.png";
+import logoEnterEng from "../assets/partners/enter_eng.png";
+import logoUzbekneftegaz from "../assets/partners/uzbekneftegaz.png";
+import logoTuShield from "../assets/partners/tu_shield.png";
+import logoBektemir from "../assets/partners/bektemir.png";
+import logoHududiy from "../assets/partners/hududiy.png";
+
+// Сертификаты / лицензия (вырезаны из презентации)
+import certLicense from "../assets/certs/cert_license.jpg";
+import cert1 from "../assets/certs/cert_1.jpg";
+import cert2 from "../assets/certs/cert_2.jpg";
+
 const gradHead = (colors) => ({
   fontFamily: "'Oswald', sans-serif", fontWeight: 700,
   fontSize: "clamp(1.7rem, 7vw, 3.4rem)", lineHeight: 1.05, margin: 0,
@@ -15,11 +33,28 @@ const gradHead = (colors) => ({
   WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent"
 });
 
-// Партнёры завода — названия не переводим (собственные имена)
-const PARTNERS = ["SQB", "Минэнерго Узбекистана", "НГМК", "АГМК", "Enter Engineering", "Uzbekneftegaz", "Bektemir tumani", "Hududiy Elektr Tarmoqlari"];
+const PARTNERS = [
+  { name: "SQB", logo: logoSqb },
+  { name: "Минэнерго Узбекистана", logo: logoMinenergo },
+  { name: "г. Ташкент", logo: logoToshkent },
+  { name: "НГМК", logo: logoNgmk },
+  { name: "АГМК", logo: logoAgmk },
+  { name: "Enter Engineering", logo: logoEnterEng },
+  { name: "Uzbekneftegaz", logo: logoUzbekneftegaz },
+  { name: "ТУ", logo: logoTuShield },
+  { name: "Бектемирский туман", logo: logoBektemir },
+  { name: "Hududiy Elektr Tarmoqlari", logo: logoHududiy },
+];
+
+const CERT_DOCS = [
+  { key: "license", img: certLicense },
+  { key: "cert1", img: cert1 },
+  { key: "cert2", img: cert2 },
+];
 
 export default function About() {
   const { t } = useLanguage();
+  const [openDoc, setOpenDoc] = useState(null);
 
   // Массив иконок и картинок (текст берется динамически из i18n)
   const VALUES = [
@@ -123,18 +158,16 @@ export default function About() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18, marginTop: 40 }}>
           {VALUES.map((v, i) => (
             <div key={i} style={{
-              borderRadius: 20, 
-              padding: 24, 
+              borderRadius: 20,
+              padding: 24,
               minHeight: 200,
               border: "1px solid rgba(255,255,255,0.08)",
-              display: "flex", 
-              flexDirection: "column", 
+              display: "flex",
+              flexDirection: "column",
               justifyContent: "flex-end",
-              position: "relative", // Важно для позиционирования фона
-              overflow: "hidden"    // Чтобы отзеркаленный фон не вылезал за скругления углов
+              position: "relative",
+              overflow: "hidden"
             }}>
-              
-              {/* ОТДЕЛЬНЫЙ БЛОК ДЛЯ ФОНА С ЭФФЕКТОМ ЗЕРКАЛА */}
               <div style={{
                 position: "absolute",
                 top: 0, left: 0, right: 0, bottom: 0,
@@ -142,14 +175,12 @@ export default function About() {
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 zIndex: 0,
-                // Если у карточки стоит флаг isMirrored, зеркалим её по горизонтали
-                transform: v.isMirrored ? "scaleX(-1)" : "none" 
+                transform: v.isMirrored ? "scaleX(-1)" : "none"
               }} />
-        
-              {/* КОНТЕНТ КАРТОЧКИ (поверх фона благодаря zIndex: 1) */}
+
               <div style={{ position: "relative", zIndex: 1 }}>
                 <div style={{
-                  width: 40, height: 40, borderRadius: 10, 
+                  width: 40, height: 40, borderRadius: 10,
                   background: "rgba(79, 143, 224, 0.15)",
                   backdropFilter: "blur(6px)",
                   border: "1px solid rgba(79, 143, 224, 0.35)",
@@ -160,7 +191,6 @@ export default function About() {
                 <div style={{ fontWeight: 600, marginBottom: 6, color: "#ffffff" }}>{v.t}</div>
                 <div style={{ color: "rgba(238,236,228,0.7)", fontSize: "0.88rem", lineHeight: 1.5 }}>{v.d}</div>
               </div>
-        
             </div>
           ))}
         </div>
@@ -189,6 +219,34 @@ export default function About() {
             {t("about.certText")}
           </p>
         </div>
+
+        {/* Превью документов — кликабельные, открываются в модалке */}
+        <div style={{ display: "flex", gap: 16, marginTop: 20, flexWrap: "wrap" }}>
+          {CERT_DOCS.map((doc) => (
+            <button
+              key={doc.key}
+              onClick={() => setOpenDoc(doc)}
+              style={{
+                width: 150, height: 200, padding: 0, cursor: "pointer",
+                borderRadius: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.12)",
+                background: "#fff", position: "relative"
+              }}
+            >
+              <img src={doc.img} alt={t(`about.certDocs.${doc.key}`)} style={{
+                width: "100%", height: "100%", objectFit: "cover"
+              }} />
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(0deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 40%)",
+                display: "flex", alignItems: "flex-end", padding: 10
+              }}>
+                <span style={{ color: "#fff", fontSize: "0.72rem", fontWeight: 600, textAlign: "left" }}>
+                  {t(`about.certDocs.${doc.key}`)}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* СЕКЦИЯ 5: ПАРТНЁРЫ */}
@@ -202,16 +260,46 @@ export default function About() {
           {t("about.partnersIntro")}
         </p>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 28 }}>
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 14,
+          marginTop: 28
+        }}>
           {PARTNERS.map((p) => (
-            <span key={p} style={{
-              padding: "10px 18px", borderRadius: 999, fontSize: "0.85rem",
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-              color: "rgba(238,236,228,0.85)"
-            }}>{p}</span>
+            <div key={p.name} title={p.name} style={{
+              background: "#fff", borderRadius: 16, height: 100,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 16, boxShadow: "0 8px 20px rgba(0,0,0,0.25)"
+            }}>
+              <img src={p.logo} alt={p.name} style={{
+                maxWidth: "100%", maxHeight: "100%", objectFit: "contain"
+              }} />
+            </div>
           ))}
         </div>
       </div>
+
+      {/* МОДАЛКА ПРОСМОТРА ДОКУМЕНТА */}
+      {openDoc && (
+        <div onClick={() => setOpenDoc(null)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 60,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 20
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "#16191d", padding: 12, borderRadius: 12,
+            maxWidth: "90vw", maxHeight: "90vh", position: "relative",
+            border: "1px solid rgba(238,236,228,0.15)"
+          }}>
+            <button onClick={() => setOpenDoc(null)} aria-label="close" style={{
+              position: "absolute", top: -14, right: -14, width: 32, height: 32, borderRadius: "50%",
+              background: "#4f8fe0", border: "none", color: "#0d0f11", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center"
+            }}>
+              <X size={18} />
+            </button>
+            <img src={openDoc.img} alt="" style={{ maxWidth: "86vw", maxHeight: "80vh", display: "block", borderRadius: 6 }} />
+          </div>
+        </div>
+      )}
 
       <div style={{ position: "relative", zIndex: 1, padding: "0 32px 60px" }}>
         <span style={{

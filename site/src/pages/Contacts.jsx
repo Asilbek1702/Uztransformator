@@ -14,11 +14,11 @@ const MAP_LINK = "https://maps.app.goo.gl/5vobyWXhDA4sLWyw6";
 
 // Если ссылки нет (href: "") — иконка покажет "скоро появится" вместо перехода
 const socials = [
-  { icon: Send, label: "Telegram", href: "https://t.me/uztransformator" },
+  { icon: Send, label: "Telegram", href: "" },
   { icon: InstagramIcon, label: "Instagram", href: "https://instagram.com/uztransformator" },
-  { icon: MessageCircle, label: "WhatsApp", href: "https://wa.me/998710000000" },
-  { icon: FacebookIcon, label: "Facebook", href: "https://facebook.com/uztransformator" },
-  { icon: LinkedinIcon, label: "LinkedIn", href: "https://linkedin.com/company/uztransformator" },
+  { icon: MessageCircle, label: "WhatsApp", href: "" },
+  { icon: FacebookIcon, label: "Facebook", href: "" },
+  { icon: LinkedinIcon, label: "LinkedIn", href: "" },
 ];
 
 export default function Contacts() {
