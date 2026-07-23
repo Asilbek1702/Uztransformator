@@ -1,4 +1,4 @@
-import { ShieldCheck, Wrench, Truck, Clock } from "lucide-react";
+import { ShieldCheck, Wrench, Truck, Clock, BadgeCheck } from "lucide-react";
 import StarField from "../components/StarField";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -14,6 +14,9 @@ const gradHead = (colors) => ({
   backgroundImage: `linear-gradient(180deg, ${colors[0]} 0%, ${colors[1]} 100%)`,
   WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent"
 });
+
+// Партнёры завода — названия не переводим (собственные имена)
+const PARTNERS = ["SQB", "Минэнерго Узбекистана", "НГМК", "АГМК", "Enter Engineering", "Uzbekneftegaz", "Bektemir tumani", "Hududiy Elektr Tarmoqlari"];
 
 export default function About() {
   const { t } = useLanguage();
@@ -35,7 +38,7 @@ export default function About() {
         <p style={{ fontFamily: "monospace", fontSize: "0.78rem", letterSpacing: "0.18em", color: "#4f8fe0", marginBottom: 18 }}>
           {t("about.eyebrow")}
         </p>
-        
+
         {/* Двухцветный заголовок динамически делится по разделителю " — " */}
         <h2 style={gradHead(["#ffffff", "#8a8a8a"])}>
           {t("about.heading") ? t("about.heading").split(" — ")[0] : ""}
@@ -47,6 +50,12 @@ export default function About() {
         <p style={{ display: "flex", gap: 10, marginTop: 26, maxWidth: 620, color: "#9fc3e8", lineHeight: 1.7 }}>
           <span style={{ color: "#4f8fe0" }}>✦</span>
           {t("about.intro")}
+        </p>
+
+        {/* Миссия компании */}
+        <p style={{ display: "flex", gap: 10, marginTop: 18, maxWidth: 620, color: "rgba(238,236,228,0.75)", lineHeight: 1.7 }}>
+          <span style={{ color: "#4f8fe0" }}>✦</span>
+          {t("about.missionText")}
         </p>
 
         {/* Сетка фактов (числа и подписи рендерятся напрямую по индексам из translations.js) */}
@@ -153,6 +162,53 @@ export default function About() {
               </div>
         
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* СЕКЦИЯ 4: СЕРТИФИКАЦИЯ */}
+      <div style={{ maxWidth: 960, margin: "0 auto", position: "relative", zIndex: 1, padding: "0 32px 80px" }}>
+        <p style={{ fontFamily: "monospace", fontSize: "0.78rem", letterSpacing: "0.18em", color: "#4f8fe0", marginBottom: 18 }}>
+          {t("about.certEyebrow")}
+        </p>
+        <h3 style={gradHead(["#ffffff", "#8a8a8a"])}>{t("about.certTitle")}</h3>
+
+        <div style={{
+          display: "flex", gap: 16, alignItems: "flex-start", marginTop: 24,
+          background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 20, padding: "28px 30px", maxWidth: 700
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+            background: "rgba(79, 143, 224, 0.15)", border: "1px solid rgba(79, 143, 224, 0.35)",
+            display: "flex", alignItems: "center", justifyContent: "center"
+          }}>
+            <BadgeCheck size={22} color="#4f8fe0" />
+          </div>
+          <p style={{ margin: 0, color: "rgba(238,236,228,0.75)", lineHeight: 1.7, fontSize: "0.95rem" }}>
+            {t("about.certText")}
+          </p>
+        </div>
+      </div>
+
+      {/* СЕКЦИЯ 5: ПАРТНЁРЫ */}
+      <div style={{ maxWidth: 960, margin: "0 auto", position: "relative", zIndex: 1, padding: "0 32px 100px" }}>
+        <p style={{ fontFamily: "monospace", fontSize: "0.78rem", letterSpacing: "0.18em", color: "#4f8fe0", marginBottom: 18 }}>
+          {t("about.partnersEyebrow")}
+        </p>
+        <h3 style={gradHead(["#ffffff", "#8a8a8a"])}>{t("about.partnersTitle")}</h3>
+        <p style={{ display: "flex", gap: 10, marginTop: 18, maxWidth: 620, color: "rgba(238,236,228,0.6)", lineHeight: 1.6, fontSize: "0.92rem" }}>
+          <span style={{ color: "#4f8fe0" }}>✦</span>
+          {t("about.partnersIntro")}
+        </p>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 28 }}>
+          {PARTNERS.map((p) => (
+            <span key={p} style={{
+              padding: "10px 18px", borderRadius: 999, fontSize: "0.85rem",
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(238,236,228,0.85)"
+            }}>{p}</span>
           ))}
         </div>
       </div>
